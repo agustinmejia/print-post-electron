@@ -1,0 +1,28 @@
+{
+  "name": "print-pos",
+  "version": "1.0.0",
+  "description": "Servicio  para imprimir en impresora térmica desde petición http.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agustinmejia/print-pos.git"
+  },
+  "author": "agustinmejia",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/agustinmejia/print-pos/issues"
+  },
+  "homepage": "https://github.com/agustinmejia/print-pos#readme",
+  "devDependencies": {
+    "electron": "^33.3.1"
+  },
+  "dependencies": {
+    "escpos": "^3.0.0-alpha.6",
+    "escpos-usb": "^3.0.0-alpha.4",
+    "express": "^4.21.2"
+  }
+}
