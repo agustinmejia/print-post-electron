@@ -28,7 +28,10 @@
 
         <script>
             document.getElementById('btn-test').addEventListener('click', function() {
-                fetch('http://localhost:4010/test')
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('result').innerHTML = 'Iniciando...';
+
+                fetch('http://localhost:3000/test')
                     .then(response => {
                         if (!response.ok) {
                             console.log('error')
@@ -37,7 +40,6 @@
                     })
                     .then(data => {
                         document.getElementById('result').style.display = 'block';
-                        console.log(data)
                         let message = '';
                         if(data.success){
                             message += '<li>✔️ Servidor http</li>';
@@ -54,7 +56,7 @@
                         document.getElementById('result').innerHTML = message;
                     })
                     .catch(error => {
-                        document.getElementById('result').innerHTML = 'Error al obtener los datos: ' + error.message;
+                        document.getElementById('result').innerHTML = '❌ Error al obtener los datos: ' + error.message;
                     });
             });
 

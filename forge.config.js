@@ -5,6 +5,10 @@ module.exports = {
   packagerConfig: {
     asar: true,
   },
+  "files": [
+    "main.js",
+    "node_modules/**/*"
+  ],
   rebuildConfig: {},
   makers: [
     {

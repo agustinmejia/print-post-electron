@@ -6,6 +6,7 @@ const path = require('node:path')
 
 // Dependencias del servidor de impresión
 const express = require('express');
+const cors = require('cors');
 const escpos = require('escpos'); // Módulo escpos
 escpos.USB = require('escpos-usb'); // Soporte para USB
 
@@ -16,6 +17,7 @@ const { SERVER_URL, SERVER_PORT } = process.env;
 
 // Middleware para manejar JSON
 server.use(express.json());
+server.use(cors());
 // Fin de dependencias
 
 // Solo para entorno de desarrollo
@@ -37,7 +39,9 @@ const createWindow = () => {
     });
 
     // and load the index.html of the app.
-    mainWindow.loadFile('pages/index.html')
+    // mainWindow.loadFile('pages/index.html')
+    const serverPath = `file://${path.join(__dirname, 'pages', 'index.html')}`;
+    mainWindow.loadURL(serverPath);
 
     // Open the DevTools.
     // mainWindow.webContents.openDevTools()

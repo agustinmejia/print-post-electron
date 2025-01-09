@@ -32,14 +32,14 @@ Una vez el programa se esté ejecutando se puede hacer peticiones http las sigui
     <tr>
         <td>Prueba</td>
         <td>GET</td>
-        <td>http://localhost:4010/test</td>
+        <td>http://localhost:3000/test</td>
         <td></td>
         <td>JSON</td>
     </tr>
     <tr>
         <td>Imprimir</td>
         <td>POST</td>
-        <td>http://localhost:4010/print</td>
+        <td>http://localhost:3000/print</td>
         <td>Formato JSON descrito abajo de ésta tabla </td>
         <td>JSON</td>
     </tr>
@@ -77,6 +77,9 @@ Formato del cuerpo de la petición para imprimir
 ```
 
 ## Generar ejecutable
+```bash
+npm run make
+```
 
 ## Problemas frecuentes
 ### Bug en la librería escpos-usb ```3.0.0-alpha.4```
