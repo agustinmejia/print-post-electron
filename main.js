@@ -1,7 +1,7 @@
 // main.js
 
 // Modules to control application life and create native browser window
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, dialog } = require('electron')
 const path = require('node:path')
 
 // Dependencias del servidor de impresión
@@ -10,28 +10,55 @@ const escpos = require('escpos'); // Módulo escpos
 escpos.USB = require('escpos-usb'); // Soporte para USB
 
 const server = express();
-const port = 3099;
+
+require('dotenv').config();
+const { SERVER_URL, SERVER_PORT } = process.env;
 
 // Middleware para manejar JSON
 server.use(express.json());
 // Fin de dependencias
 
+// Solo para entorno de desarrollo
+// require('electron-reload')(path.join(__dirname, 'pages'), {
+//   electron: require(`${__dirname}/node_modules/electron`),
+// });
+
+
 const createWindow = () => {
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-    // show: false,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
+    // Create the browser window.
+    const mainWindow = new BrowserWindow({
+        width: 600,
+        height: 400,
+        // show: false,
+        icon: path.join(__dirname, 'assets/images', 'icon.png'),
+        webPreferences: {
+            preload: path.join(__dirname, 'preload.js')
+        }
+    });
+
+    // and load the index.html of the app.
+    mainWindow.loadFile('pages/index.html')
+
+    // Open the DevTools.
+    // mainWindow.webContents.openDevTools()
+
+     // Interceptar el evento de cierre de la ventana
+    mainWindow.on('close', (event) => {
+    // Mostrar un cuadro de diálogo de confirmación
+    const response = dialog.showMessageBoxSync(mainWindow, {
+        type: 'warning',
+        buttons: ['Cancelar', 'Cerrar'],
+        defaultId: 1,
+        title: 'Confirmar cierre',
+        message: '¿Estás seguro de que deseas cerrar la aplicación?'
+    });
+
+    // Si el usuario selecciona 'Cancelar', prevenir el cierre
+    if (response === 0) {
+        event.preventDefault();
     }
-  })
+    });
 
-  // and load the index.html of the app.
-  mainWindow.loadFile('pages/index.html')
-
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
 }
 
 // This method will be called when Electron has finished
@@ -50,6 +77,9 @@ app.whenReady().then(() => {
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
+
+
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })
@@ -59,13 +89,25 @@ app.on('window-all-closed', () => {
 
 // Rutas del servidor
 server.get('/test', (req, res) => {
-  try {
-    console.log('Servidor activo')
-    res.send('Servidor activo');
-  } catch (error) {
-    console.error('Error en la petición', error);
-    res.status(500).send('Error en la petición');
-  }
+    try {
+        console.log('Servidor activo')
+        var device = null;
+        try {
+            device = new escpos.USB();
+        } catch (error) {
+            console.log('Error al conectarse a la impresora')
+        }
+        res.send({
+            success: 1,
+            message: 'Servidor activo',
+            details: {
+                print: device
+            }
+        });
+    } catch (error) {
+        console.error('Error en la petición', error);
+        res.status(500).send({error: 1, message: 'Error en la petición http'});
+    }
 });
 
 // Ruta para imprimir ticket
@@ -82,10 +124,10 @@ server.post('/print', (req, res) => {
                 printComanda(req);
                 break;
         }
-        res.send('Ticket impreso correctamente');
+        res.send({success: 1, message: 'Ticket impreso correctamente'});
     } catch (error) {
         console.error('Error en la petición', error);
-        res.status(500).send('Error al imprimir el ticket');
+        res.status(500).send({error: 1, message: 'Error al imprimir el ticket'});
     }
 });
 
@@ -198,6 +240,6 @@ function printComanda(req){
 }
 
 // Inicio del servidor
-server.listen(port, () => {
-    console.log(`Servidor escuchando en http://localhost:${port}`);
+server.listen(SERVER_PORT, () => {
+    console.log(`Servidor escuchando en ${SERVER_URL}:${SERVER_PORT}`);
 });

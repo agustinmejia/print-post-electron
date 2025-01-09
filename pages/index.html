@@ -1,19 +1,63 @@
-<!--index.html-->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
     <head>
-        <meta charset="UTF-8">
-        <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-        <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-        <title>PrintPost V1.0</title>
-        </head>
-        <body>
-        <h1>Hello Worl!</h1>
-        We are using Node.js <span id="node-version"></span>,
-        Chromium <span id="chrome-version"></span>,
-        and Electron <span id="electron-version"></span>.
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="../dist/tailwind.css" rel="stylesheet">
+    <title>PrintPost V1.0</title>
+    </head>
+    <body class="h-screen flex items-center justify-center bg-gray-900">
+        <!-- Contenedor con fondo de imagen -->
+        <div class="relative w-full h-full bg-cover bg-center" style="background-image: url('../assets/images/background.jpg');background-position: center;background-repeat: no-repeat;background-size: cover;">
+            <!-- Div con efecto de vidrio polarizado -->
+            <div class="h-screen w-auto absolute inset-0 bg-black backdrop-blur-sm bg-black/50 backdrop-blur-lg">
+                <div class="text-center text-white pt-5">
+                    <h1 class="text-4xl font-bold">PrintPost v1.0</h1>
+                    <p class="text-md">Interface de impresión ESC/POS desde http</p>
+                    <br>
+                    <p>
+                        <button id="btn-test" class="bg-green-500 text-white py-2 px-4 rounded-md">
+                            Probar
+                        </button>
+                    </p>
+                </div>
+                <div id="result" class="mt-5 hidden bg-gray-900 border-4 border-gray-500 rounded-lg p-4 mx-20 text-white">
+                </div>
+            </div>
+        </div>
 
-        <!-- You can also require other files to run in this process -->
-        <!-- <script src="./renderer.js"></script> -->
-    </body>
+        <script>
+            document.getElementById('btn-test').addEventListener('click', function() {
+                fetch('http://localhost:4010/test')
+                    .then(response => {
+                        if (!response.ok) {
+                            console.log('error')
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        document.getElementById('result').style.display = 'block';
+                        console.log(data)
+                        let message = '';
+                        if(data.success){
+                            message += '<li>✔️ Servidor http</li>';
+                            if(data.details.print){
+                                message += '<li>✔️ Impresora</li>';
+                            }else{
+                                message += '<li>❌ Impresora</li>';
+                            }
+
+                            message = `<ul>${message}</ul>`;
+                        }else{
+                            message = '❌ '+data.message;
+                        }
+                        document.getElementById('result').innerHTML = message;
+                    })
+                    .catch(error => {
+                        document.getElementById('result').innerHTML = 'Error al obtener los datos: ' + error.message;
+                    });
+            });
+
+        </script>
+      </body>
 </html>

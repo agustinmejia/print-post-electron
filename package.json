@@ -4,8 +4,11 @@
   "description": "Servicio  para imprimir en impresora térmica desde petición http.",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "electron-forge start",
+    "build:css": "npx tailwindcss -i ./assets/css/tailwind.css -o ./dist/tailwind.css --watch",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
   "repository": {
     "type": "git",
@@ -18,9 +21,23 @@
   },
   "homepage": "https://github.com/agustinmejia/print-pos#readme",
   "devDependencies": {
-    "electron": "^33.3.1"
+    "@electron-forge/cli": "^7.6.0",
+    "@electron-forge/maker-deb": "^7.6.0",
+    "@electron-forge/maker-rpm": "^7.6.0",
+    "@electron-forge/maker-squirrel": "^7.6.0",
+    "@electron-forge/maker-zip": "^7.6.0",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.6.0",
+    "@electron-forge/plugin-fuses": "^7.6.0",
+    "@electron/fuses": "^1.8.0",
+    "autoprefixer": "^10.4.20",
+    "electron": "^33.3.1",
+    "electron-reload": "^2.0.0-alpha.1",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17"
   },
   "dependencies": {
+    "dotenv": "^16.4.7",
+    "electron-squirrel-startup": "^1.0.1",
     "escpos": "^3.0.0-alpha.6",
     "escpos-usb": "^3.0.0-alpha.4",
     "express": "^4.21.2"
