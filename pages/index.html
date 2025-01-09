@@ -31,7 +31,7 @@
                 document.getElementById('result').style.display = 'block';
                 document.getElementById('result').innerHTML = 'Iniciando...';
 
-                fetch('http://localhost:3000/test')
+                fetch('http://127.0.0.1:3000/test')
                     .then(response => {
                         if (!response.ok) {
                             console.log('error')

@@ -5,7 +5,19 @@ module.exports = {
   packagerConfig: {
     asar: true,
   },
-  "files": [
+  build: {
+    "extraResources": [
+      {
+        "from": "pages",
+        "to": "pages"
+      },
+      {
+        "from": "server.js",
+        "to": "server.js"
+      }
+    ]
+  },
+  files: [
     "main.js",
     "node_modules/**/*"
   ],

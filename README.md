@@ -14,7 +14,6 @@ Software para imprimir en impresoras térmicas ESC/POS desde peticiones HTTP.
 ## Instalación
 ```bash
 npm i
-npm run build:css
 cp .env-example .env
 npm start
 ```
@@ -32,14 +31,14 @@ Una vez el programa se esté ejecutando se puede hacer peticiones http las sigui
     <tr>
         <td>Prueba</td>
         <td>GET</td>
-        <td>http://localhost:3000/test</td>
+        <td>http://127.0.0.1:3000/test</td>
         <td></td>
         <td>JSON</td>
     </tr>
     <tr>
         <td>Imprimir</td>
         <td>POST</td>
-        <td>http://localhost:3000/print</td>
+        <td>http://127.0.0.1:3000/print</td>
         <td>Formato JSON descrito abajo de ésta tabla </td>
         <td>JSON</td>
     </tr>
