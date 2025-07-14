@@ -18,36 +18,18 @@ cp .env-example .env
 npm start
 ```
 ## Uso
-Una vez el programa se esté ejecutando se puede hacer peticiones http las siguientes rutas:
+### Impresión de prueba ```GET http://localhost:3010/test```
+Devuelve los datos de la impresora y hace una impresión de prueba
 
-<table>
-    <tr>
-        <th>Descripción</th>
-        <th>Tipo</th>
-        <th>Ruta</th>
-        <th>Parámetros</th>
-        <th>Respuesta</th>
-    </tr>
-    <tr>
-        <td>Prueba</td>
-        <td>GET</td>
-        <td>http://127.0.0.1:3000/test</td>
-        <td></td>
-        <td>JSON</td>
-    </tr>
-    <tr>
-        <td>Imprimir</td>
-        <td>POST</td>
-        <td>http://127.0.0.1:3000/print</td>
-        <td>Formato JSON descrito abajo de ésta tabla </td>
-        <td>JSON</td>
-    </tr>
-</table>
+### Impresión de ticket ```POST http://localhost:3010/print```
 
-Formato del cuerpo de la petición para imprimir
-```
+> **IMPORTANTE:** En el caso de que que la impresora esté en red se debe enviar en la petición la ```ip``` y el ```puerto``` (opcional) de la impresora ```?ip=192.168.1.1&port=```
+
+Cuerpo de la petición:
+
+```json
 {
-    "templeate" : "", // "", "comanda"
+    "templeate" : "normal",
     "company_name": "DesarrolloCreativo",
     "sale_number": "001",
     "payment_type" : "Efectivo",
@@ -55,6 +37,7 @@ Formato del cuerpo de la petición para imprimir
     "table_number" : 5,
     "discount" : 0,
     "observations" : "Sin aceitunas",
+    "customer" : "Juan Perez",
     "details" : [
         {
             "product" : "Pollo económico",
@@ -74,6 +57,7 @@ Formato del cuerpo de la petición para imprimir
     ]
 }
 ```
+> **NOTA:** ***template: 'normal'*** imprime el ticket y la comanda, si solo se desea imprimir la comanda se debe escribir "***comanda***".
 
 ## Generar ejecutable
 ```bash

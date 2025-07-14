@@ -1,26 +1,19 @@
 // main.js
 
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, dialog } = require('electron')
+const { app, BrowserWindow, dialog, Tray, Menu } = require('electron')
 const path = require('node:path')
 
-const { NODE_ENV } = process.env;
-
-const isDev = NODE_ENV === 'dev';
-const basePath = isDev ? __dirname : process.resourcesPath;
-
-// Solo para entorno de desarrollo
-// require('electron-reload')(path.join(__dirname, 'pages'), {
-//   electron: require(`${__dirname}/node_modules/electron`),
-// });
-
+let mainWindow = null;
+let tray = null;
 
 const createWindow = () => {
     // Create the browser window.
     const mainWindow = new BrowserWindow({
         width: 600,
         height: 400,
-        // show: false,
+        show: false,
+        skipTaskbar: true,
         icon: path.join(__dirname, 'assets/images', 'icon.png'),
         webPreferences: {
             preload: path.join(__dirname, 'preload.js')
@@ -32,32 +25,61 @@ const createWindow = () => {
     const serverPath = `file://${path.join(__dirname, 'pages', 'index.html')}`;
     mainWindow.loadURL(serverPath);
 
+    // Minimiza la ventana al iniciarse
+    mainWindow.minimize();
+
     // Open the DevTools.
     // mainWindow.webContents.openDevTools()
 
-     // Interceptar el evento de cierre de la ventana
+    // Configurar bandeja del sistema
+    tray = new Tray(path.join(__dirname, 'assets/images', 'icon.png'));
+    tray.setToolTip('Impresora App');
+
+    // Crear un menú contextual para la bandeja
+    const contextMenu = Menu.buildFromTemplate([
+        {
+            label: 'Restaurar',
+            click: () => {
+                mainWindow.show();
+                mainWindow.restore();
+            }
+        },
+        {
+            label: 'Cerrar',
+            click: () => {
+                app.quit(); // Cierra la aplicación completamente
+            }
+        }
+    ]);
+    tray.setContextMenu(contextMenu);
+
+    // Mostrar la ventana al hacer clic en el ícono de la bandeja
+    tray.on('click', () => {
+        mainWindow.show();
+        mainWindow.restore();
+    });
+
+    // Interceptar el evento de cierre de la ventana
     mainWindow.on('close', (event) => {
-    // Mostrar un cuadro de diálogo de confirmación
-    const response = dialog.showMessageBoxSync(mainWindow, {
-        type: 'warning',
-        buttons: ['Cancelar', 'Cerrar'],
-        defaultId: 1,
-        title: 'Confirmar cierre',
-        message: '¿Estás seguro de que deseas cerrar la aplicación?'
+        if (!app.isQuitting) {
+            event.preventDefault(); // Prevenir el cierre
+            mainWindow.hide(); // Ocultar la ventana
+            mainWindow.minimize(); // Minimizar a la bandeja
+        }
     });
-
-    // Si el usuario selecciona 'Cancelar', prevenir el cierre
-    if (response === 0) {
-        event.preventDefault();
-    }
-    });
-
 }
 
 function startServer() {
     const serverPath = path.join(__dirname, 'server.js');
-    require(serverPath);
+    try {
+        require(serverPath);
+        console.log('Servidor Express iniciado correctamente');
+    } catch (error) {
+        console.error('Error al iniciar el servidor Express:', error);
+    }
 }
+
+app.setName('dc-pos-printer');
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -79,9 +101,16 @@ app.whenReady().then(() => {
 
 
 
+// Evitar que la aplicación se cierre al cerrar todas las ventanas
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit()
-})
+    // No cerrar la aplicación en Windows (mantener en la bandeja)
+    // if (process.platform !== 'darwin') app.quit();
+});
+
+// Permitir cerrar la aplicación desde el menú de la bandeja
+app.on('before-quit', () => {
+    app.isQuitting = true; // Indicar que se está cerrando intencionalmente
+});
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.

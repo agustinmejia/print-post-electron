@@ -31,7 +31,7 @@
                 document.getElementById('result').style.display = 'block';
                 document.getElementById('result').innerHTML = 'Iniciando...';
 
-                fetch('http://127.0.0.1:3000/test')
+                fetch('http://127.0.0.1:3010/test')
                     .then(response => {
                         if (!response.ok) {
                             console.log('error')
@@ -42,7 +42,7 @@
                         document.getElementById('result').style.display = 'block';
                         let message = '';
                         if(data.success){
-                            message += '<li>✔️ Servidor http</li>';
+                            message += '<li>✔️ Servidor http (<a href="http://localhost:3010" target="_blank">Ver</a>) </li>';
                             if(data.details.print){
                                 message += '<li>✔️ Impresora</li>';
                             }else{
@@ -57,6 +57,7 @@
                     })
                     .catch(error => {
                         document.getElementById('result').innerHTML = '❌ Error al obtener los datos: ' + error.message;
+                        console.log(error)
                     });
             });
 
