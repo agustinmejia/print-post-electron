@@ -14,7 +14,6 @@ Software para imprimir en impresoras térmicas ESC/POS desde peticiones HTTP.
 ## Instalación
 ```bash
 npm i
-cp .env-example .env
 npm start
 ```
 ## Uso
@@ -29,7 +28,7 @@ Cuerpo de la petición:
 
 ```json
 {
-    "templeate" : "normal",
+    "template" : "normal",
     "company_name": "DesarrolloCreativo",
     "sale_number": "001",
     "payment_type" : "Efectivo",

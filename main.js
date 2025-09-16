@@ -1,29 +1,46 @@
 // main.js
 
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, dialog, Tray, Menu } = require('electron')
-const path = require('node:path')
+const { app, BrowserWindow, Tray, Menu } = require('electron');
+const path = require('node:path');
 
 let mainWindow = null;
 let tray = null;
 
+// Previene que se abran múltiples instancias de la aplicación.
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    // Si alguien intenta ejecutar una segunda instancia, enfocamos nuestra ventana.
+    if (mainWindow) {
+      if (!mainWindow.isVisible()) {
+        mainWindow.show();
+      }
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore();
+      }
+      mainWindow.focus();
+    }
+  });
+}
+
 const createWindow = () => {
     // Create the browser window.
-    const mainWindow = new BrowserWindow({
+    mainWindow = new BrowserWindow({
         width: 600,
         height: 400,
         show: false,
-        skipTaskbar: true,
+        skipTaskbar: false, // Se mostrará en la barra de tareas cuando sea visible
         icon: path.join(__dirname, 'assets/images', 'icon.png'),
         webPreferences: {
             preload: path.join(__dirname, 'preload.js')
         }
     });
 
-    // and load the index.html of the app.
-    // mainWindow.loadFile('pages/index.html')
-    const serverPath = `file://${path.join(__dirname, 'pages', 'index.html')}`;
-    mainWindow.loadURL(serverPath);
+    mainWindow.loadFile(path.join(__dirname, 'pages', 'index.html'));
 
     // Minimiza la ventana al iniciarse
     mainWindow.minimize();
@@ -63,8 +80,7 @@ const createWindow = () => {
     mainWindow.on('close', (event) => {
         if (!app.isQuitting) {
             event.preventDefault(); // Prevenir el cierre
-            mainWindow.hide(); // Ocultar la ventana
-            mainWindow.minimize(); // Minimizar a la bandeja
+            mainWindow.hide(); // Ocultar la ventana en lugar de cerrarla
         }
     });
 }
@@ -88,20 +104,16 @@ app.whenReady().then(() => {
     startServer();
     createWindow()
 
-    app.on('activate', () => {
+    app.on('activate', function () {
         // On macOS it's common to re-create a window in the app when the
         // dock icon is clicked and there are no other windows open.
-        if (BrowserWindow.getAllWindows().length === 0) createWindow()
+        if (BrowserWindow.getAllWindows().length === 0) {
+            createWindow();
+        }
     })
 })
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-
-
-
-// Evitar que la aplicación se cierre al cerrar todas las ventanas
+// No hacer nada cuando todas las ventanas se cierran, la aplicación seguirá en la bandeja.
 app.on('window-all-closed', () => {
     // No cerrar la aplicación en Windows (mantener en la bandeja)
     // if (process.platform !== 'darwin') app.quit();
