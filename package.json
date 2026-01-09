@@ -1,11 +1,10 @@
 {
   "name": "print-pos",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Servicio  para imprimir en impresora térmica desde petición http.",
   "main": "main.js",
   "scripts": {
     "start": "electron-forge start",
-    "build:css": "npx tailwindcss -i ./assets/css/tailwind.css -o ./dist/tailwind.css --watch",
     "test": "echo \"Error: no test specified\" && exit 1",
     "package": "electron-forge package",
     "make": "electron-forge make"
@@ -29,11 +28,8 @@
     "@electron-forge/plugin-auto-unpack-natives": "^7.6.0",
     "@electron-forge/plugin-fuses": "^7.6.0",
     "@electron/fuses": "^1.8.0",
-    "autoprefixer": "^10.4.20",
     "electron": "^33.3.1",
-    "electron-reload": "^2.0.0-alpha.1",
-    "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.17"
+    "electron-reload": "^2.0.0-alpha.1"
   },
   "dependencies": {
     "cors": "^2.8.5",

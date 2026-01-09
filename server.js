@@ -39,7 +39,6 @@ app.get('/test', async (req, res) => {
                 .text(`Impresión de prueba`)
                 .size(0, 0)
                 .text('desarrollocreativo.dev')
-                .text('')
                 .cut();
         });
 
@@ -78,6 +77,9 @@ app.post('/print', async (req, res) => {
             case 'ticket_comanda':
                 await printTicket(data, printerConfig);
                 await printComanda(data, printerConfig);
+                break;
+            case 'cierre_caja':
+                await printCloseBox(data, printerConfig);
                 break;
             default:
                 await printRecipe(data, printerConfig);
@@ -142,26 +144,32 @@ function printWithDevice(device, printCommands) {
 
 async function printRecipe(data, printerConfig) {
     const { company_name, sale_number, payment_type, sale_type, table_number, discount, customer, details, font_size: raw_font_size } = data;
+
+    // Validar que la petición contenga el formato de datos correcto
+    if(!sale_number || !details){
+        console.log('Formato de datos incorrecto')
+        return;
+    }
+
     const fontSize = !isNaN(raw_font_size) ? parseInt(raw_font_size) : 0;
     const device = getDevice(printerConfig);
 
     await printWithDevice(device, (printer) => {
         printer
-            .align('ct').style('B').size(1 + fontSize, 1).text(company_name)
-            .size(0 + fontSize, 0)
+            .align('ct').style('B').size(0, 0 + fontSize).text(company_name)
+            .size(0, 0 + fontSize)
             .align('ct').style('B')
             .text(`Ticket ${sale_number}`)
             .text(`${sale_type}${table_number ? ' ' + table_number : ''}`)
             .style('NORMAL')
             .align('lt')
-            .text('')
             .tableCustom([
                 { text: 'Nombre:', align: 'LEFT' },
-                { text: customer || '', align: 'RIGHT' }
+                { text: customer || 'Sin nombre', align: 'RIGHT' }
             ])
             .size(0, 0)
             .drawLine()
-            .size(0 + fontSize, 0)
+            .size(0, 0 + fontSize)
             .align('lt');
 
         let total = 0;
@@ -174,7 +182,7 @@ async function printRecipe(data, printerConfig) {
             total += parseFloat(item.total);
         });
 
-        printer.size(0, 0).drawLine().size(0 + fontSize, 0);
+        printer.size(0, 0).drawLine().size(0, 0 + fontSize);
 
         if (discount) {
             printer.align('rt').style('B').text(`DESC: ${parseFloat(discount).toFixed(2)}`);
@@ -184,17 +192,22 @@ async function printRecipe(data, printerConfig) {
             printer.text(`Pago: ${payment_type}`);
         }
 
-        printer.text('')
+        printer
             .align('ct').style('NORMAL').text('Gracias por su preferencia!')
-            .text('')
             .align('rt').style('NORMAL').text(getDateTime())
-            .text('')
             .cut();
     });
 }
 
 async function printTicket(data, printerConfig) {
     const { company_name, sale_number, sale_type, table_number } = data;
+
+    // Validar que la petición contenga el formato de datos correcto
+    if(!sale_number || !sale_type){
+        console.log('Formato de datos incorrecto')
+        return;
+    }
+
     const device = getDevice(printerConfig);
 
     await printWithDevice(device, (printer) => {
@@ -207,50 +220,112 @@ async function printTicket(data, printerConfig) {
             .align('ct').style('B').text(`${sale_type}${table_number ? ' ' + table_number : ''}`)
             .text('')
             .align('rt').style('NORMAL').text(getDateTime())
-            .text('')
             .cut();
     });
 }
 
 async function printComanda(data, printerConfig) {
     const { sale_number, sale_type, table_number, customer, details, observations, font_size: raw_font_size } = data;
+
+    // Validar que la petición contenga el formato de datos correcto
+    if(!sale_number || !details){
+        console.log('Formato de datos incorrecto')
+        return;
+    }
+
     const fontSize = !isNaN(raw_font_size) ? parseInt(raw_font_size) : 0;
     const device = getDevice(printerConfig);
 
     await printWithDevice(device, (printer) => {
         printer
-            .size(0 + fontSize, 0)
+            .size(0, 0 + fontSize)
             .align('ct').style('B')
             .text(`Ticket ${sale_number}`)
             .text(`${sale_type}${table_number ? ' ' + table_number : ''}`)
             .style('NORMAL')
             .align('lt')
-            .text('')
             .tableCustom([
                 { text: 'Nombre:', align: 'LEFT' },
-                { text: customer || '', align: 'RIGHT' }
+                { text: customer || 'Sin nombre', align: 'RIGHT' }
             ])
             .size(0, 0)
             .drawLine()
-            .size(0 + fontSize, 0)
+            .size(0, 1)
             .align('lt');
 
         (details || []).forEach(item => {
             printer.tableCustom([
-                { text: item.quantity, align: 'LEFT', width: 0.10 },
-                { text: item.product, align: 'LEFT', width: 0.56 },
-                { text: item.total.toFixed(2), align: 'RIGHT', width: 0.33 }
+                { text: item.quantity, align: 'LEFT', width: 0.1 },
+                { text: item.product, align: 'LEFT', width: 0.5 },
+                { text: item.total.toFixed(2), align: 'RIGHT', width: 0.4 }
             ]);
         });
 
         if (observations) {
-            printer.size(0, 0).drawLine().size(0 + fontSize, 0);
+            printer.size(0, 0).drawLine().size(0, 0 + fontSize);
             printer.align('lt').style('NORMAL').text(`Obs. ${observations}`);
         }
 
-        printer.text('')
-            .align('rt').style('NORMAL').text(getDateTime())
+        printer
+            .size(0, 0)
             .text('')
+            .align('rt').style('NORMAL').text(getDateTime())
+            .cut();
+    });
+}
+
+async function printCloseBox(data, printerConfig) {
+    const { user, date, opening_amount, income_amount, expenses_amount, closed_amount, missing_amount, surplus_amount, qr_amount, products } = data;
+
+    // Validar que la petición contenga el formato de datos correcto
+    if(!user || !date){
+        console.log('Formato de datos incorrecto')
+        return;
+    }
+
+    const device = getDevice(printerConfig);
+
+    await printWithDevice(device, (printer) => {
+        printer
+            .align('ct').style('B').size(1, 1).text('CIERRE DE CAJA')
+            .size(0, 0).style('NORMAL')
+            .text(`Usuario: ${user}`)
+            .text(`Fecha: ${date}`)
+            .drawLine()
+            .align('lt')
+            .text(`Apertura:   ${parseFloat(opening_amount).toFixed(2)}`)
+            .text(`Ingresos:   ${parseFloat(income_amount).toFixed(2)}`)
+            .text(`Gastos:     ${parseFloat(expenses_amount).toFixed(2)}`)
+            .text(`Cierre:     ${parseFloat(closed_amount).toFixed(2)}`)
+            .text(`Faltante:   ${parseFloat(missing_amount).toFixed(2)}`)
+            .text(`Sobrante:   ${parseFloat(surplus_amount).toFixed(2)}`)
+            .text(`Pagos QR:   ${parseFloat(qr_amount).toFixed(2)}`)
+            .drawLine();
+
+        if (products && products.length > 0) {
+            printer
+                .style('B')
+                .tableCustom([
+                    { text: 'Producto', align: 'LEFT', width: 0.5 },
+                    { text: 'Inicio', align: 'RIGHT', width: 0.25 },
+                    { text: 'Fin', align: 'RIGHT', width: 0.25 }
+                ])
+                .style('NORMAL');
+            products.forEach(p => {
+                printer.tableCustom([
+                    { text: p.name, align: 'LEFT', width: 0.5 },
+                    { text: p.opening !== null ? p.opening.toString() : 'NN', align: 'RIGHT', width: 0.25 },
+                    { text: p.closed !== null ? p.closed.toString() : 'NN', align: 'RIGHT', width: 0.25 }
+                ]);
+            });
+            printer
+                .size(0, 0)
+                .drawLine();
+        }
+        
+        printer
+            .size(0, 0)
+            .align('rt').style('NORMAL').text(`Impreso: ${getDateTime()}`)
             .cut();
     });
 }
