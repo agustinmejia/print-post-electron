@@ -39,6 +39,7 @@ app.get('/test', async (req, res) => {
                 .text(`Impresión de prueba`)
                 .size(0, 0)
                 .text('desarrollocreativo.dev')
+                .text('')
                 .cut();
         });
 
@@ -195,6 +196,7 @@ async function printRecipe(data, printerConfig) {
         printer
             .align('ct').style('NORMAL').text('Gracias por su preferencia!')
             .align('rt').style('NORMAL').text(getDateTime())
+            .text('')
             .cut();
     });
 }
@@ -220,6 +222,7 @@ async function printTicket(data, printerConfig) {
             .align('ct').style('B').text(`${sale_type}${table_number ? ' ' + table_number : ''}`)
             .text('')
             .align('rt').style('NORMAL').text(getDateTime())
+            .text('')
             .cut();
     });
 }
@@ -270,12 +273,13 @@ async function printComanda(data, printerConfig) {
             .size(0, 0)
             .text('')
             .align('rt').style('NORMAL').text(getDateTime())
+            .text('')
             .cut();
     });
 }
 
 async function printCloseBox(data, printerConfig) {
-    const { user, date, opening_amount, income_amount, expenses_amount, closed_amount, missing_amount, surplus_amount, qr_amount, products } = data;
+    const { user, date, opening_amount, income_amount, expenses_amount, closed_amount, missing_amount, surplus_amount, qr_amount, total_sales_amount, products, sales, money } = data;
 
     // Validar que la petición contenga el formato de datos correcto
     if(!user || !date){
@@ -292,23 +296,59 @@ async function printCloseBox(data, printerConfig) {
             .text(`Usuario: ${user}`)
             .text(`Fecha: ${date}`)
             .drawLine()
-            .align('lt')
-            .text(`Apertura:   ${parseFloat(opening_amount).toFixed(2)}`)
-            .text(`Ingresos:   ${parseFloat(income_amount).toFixed(2)}`)
-            .text(`Gastos:     ${parseFloat(expenses_amount).toFixed(2)}`)
-            .text(`Cierre:     ${parseFloat(closed_amount).toFixed(2)}`)
-            .text(`Faltante:   ${parseFloat(missing_amount).toFixed(2)}`)
-            .text(`Sobrante:   ${parseFloat(surplus_amount).toFixed(2)}`)
-            .text(`Pagos QR:   ${parseFloat(qr_amount).toFixed(2)}`)
+            .style('B')
+            .align('ct')
+            .text('RESUMEN')
+            .style('NORMAL')
+            // .align('lt')
+            // .text(`Apertura:   ${parseFloat(opening_amount).toFixed(2)}`)
+            // .text(`Ingresos:   ${parseFloat(income_amount).toFixed(2)}`)
+            // .text(`Gastos:     ${parseFloat(expenses_amount).toFixed(2)}`)
+            // .text(`Cierre:     ${parseFloat(closed_amount).toFixed(2)}`)
+            // .text(`Faltante:   ${parseFloat(missing_amount).toFixed(2)}`)
+            // .text(`Sobrante:   ${parseFloat(surplus_amount).toFixed(2)}`)
+            // .text(`Pagos QR:   ${parseFloat(qr_amount).toFixed(2)}`)
+
+            .tableCustom([
+                { text: 'Apertura', align: 'LEFT', width: 0.5 },
+                { text: parseFloat(opening_amount).toFixed(2), align: 'RIGHT', width: 0.5 },
+            ])
+            .tableCustom([
+                { text: 'Ingresos', align: 'LEFT', width: 0.5 },
+                { text: parseFloat(income_amount).toFixed(2), align: 'RIGHT', width: 0.5 },
+            ])
+            .tableCustom([
+                { text: 'Gastos', align: 'LEFT', width: 0.5 },
+                { text: parseFloat(expenses_amount).toFixed(2), align: 'RIGHT', width: 0.5 },
+            ])
+            .tableCustom([
+                { text: 'Cierre', align: 'LEFT', width: 0.5 },
+                { text: parseFloat(closed_amount).toFixed(2), align: 'RIGHT', width: 0.5 },
+            ])
+            .tableCustom([
+                { text: 'Faltante', align: 'LEFT', width: 0.5 },
+                { text: parseFloat(missing_amount).toFixed(2), align: 'RIGHT', width: 0.5 },
+            ])
+            .tableCustom([
+                { text: 'Sobrante', align: 'LEFT', width: 0.5 },
+                { text: parseFloat(surplus_amount).toFixed(2), align: 'RIGHT', width: 0.5 },
+            ])
+            .tableCustom([
+                { text: 'Pagos QR', align: 'LEFT', width: 0.5 },
+                { text: parseFloat(qr_amount).toFixed(2), align: 'RIGHT', width: 0.5 },
+            ])
             .drawLine();
 
         if (products && products.length > 0) {
             printer
                 .style('B')
+                .align('ct')
+                .text('INVENTARIO')
+                .align('lt')
                 .tableCustom([
-                    { text: 'Producto', align: 'LEFT', width: 0.5 },
-                    { text: 'Inicio', align: 'RIGHT', width: 0.25 },
-                    { text: 'Fin', align: 'RIGHT', width: 0.25 }
+                    { text: 'Producto', align: 'LEFT', width: 0.6 },
+                    { text: 'Inicio', align: 'RIGHT', width: 0.2 },
+                    { text: 'Fin', align: 'RIGHT', width: 0.2 }
                 ])
                 .style('NORMAL');
             products.forEach(p => {
@@ -322,10 +362,64 @@ async function printCloseBox(data, printerConfig) {
                 .size(0, 0)
                 .drawLine();
         }
+
+        if (sales && sales.length > 0) {
+            printer
+                .style('B')
+                .align('ct')
+                .text('VENTAS')
+                .align('lt')
+                .tableCustom([
+                    { text: 'Producto', align: 'LEFT', width: 0.6 },
+                    { text: 'Cant.', align: 'RIGHT', width: 0.2 },
+                    { text: 'Total', align: 'RIGHT', width: 0.2 }
+                ])
+                .style('NORMAL');
+            sales.forEach(p => {
+                printer.tableCustom([
+                    { text: p.product, align: 'LEFT', width: 0.6 },
+                    { text: p.quantity, align: 'RIGHT', width: 0.2 },
+                    { text: p.total, align: 'RIGHT', width: 0.2 },
+                ]);
+            });
+
+            printer
+                .style('B')
+                .tableCustom([
+                    { text: 'TOTAL VENTAS', align: 'LEFT', width: 0.6 },
+                    { text: parseFloat(total_sales_amount).toFixed(2), align: 'RIGHT', width: 0.4 },
+                ])
+                .style('NORMAL')
+                .size(0, 0)
+                .drawLine();
+        }
+
+        if (money && money.length > 0) {
+            printer
+                .style('B')
+                .align('ct')
+                .text('CORTES DE BILLETES')
+                .align('lt')
+                .tableCustom([
+                    { text: 'Corte', align: 'LEFT', width: 0.75 },
+                    { text: 'Cant.', align: 'RIGHT', width: 0.25 }
+                ])
+                .style('NORMAL');
+            money.forEach(p => {
+                printer.tableCustom([
+                    { text: p.amount, align: 'LEFT', width: 0.75 },
+                    { text: p.quantity, align: 'RIGHT', width: 0.25 },
+                ]);
+            });
+            printer
+                .size(0, 0)
+                .drawLine();
+        }
         
         printer
             .size(0, 0)
             .align('rt').style('NORMAL').text(`Impreso: ${getDateTime()}`)
+            .text('')
             .cut();
     });
 }
