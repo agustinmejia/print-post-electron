@@ -82,6 +82,9 @@ app.post('/print', async (req, res) => {
             case 'cierre_caja':
                 await printCloseBox(data, printerConfig);
                 break;
+            case 'inventario':
+                await printInventory(data, printerConfig);
+                break;
             default:
                 await printRecipe(data, printerConfig);
                 await printComanda(data, printerConfig);
@@ -353,9 +356,9 @@ async function printCloseBox(data, printerConfig) {
                 .style('NORMAL');
             products.forEach(p => {
                 printer.tableCustom([
-                    { text: p.name, align: 'LEFT', width: 0.5 },
-                    { text: p.opening !== null ? p.opening.toString() : 'NN', align: 'RIGHT', width: 0.25 },
-                    { text: p.closed !== null ? p.closed.toString() : 'NN', align: 'RIGHT', width: 0.25 }
+                    { text: p.name, align: 'LEFT', width: 0.6 },
+                    { text: p.opening !== null ? p.opening.toString() : 'NN', align: 'RIGHT', width: 0.2 },
+                    { text: p.closed !== null ? p.closed.toString() : 'NN', align: 'RIGHT', width: 0.2 }
                 ]);
             });
             printer
@@ -418,6 +421,53 @@ async function printCloseBox(data, printerConfig) {
         
         printer
             .size(0, 0)
+            .align('rt').style('NORMAL').text(`Impreso: ${getDateTime()}`)
+            .text('')
+            .cut();
+    });
+}
+
+async function printInventory(data, printerConfig) {
+    const { user, branch, products } = data;
+
+    // Validar que la petición contenga el formato de datos correcto
+    if(!products){
+        console.log('Formato de datos incorrecto')
+        return;
+    }
+
+    const device = getDevice(printerConfig);
+
+    await printWithDevice(device, (printer) => {
+        printer
+            .align('ct').style('B').size(1, 1).text('INVENTARIO')
+            .size(0, 0).style('NORMAL')
+            .text(`Usuario: ${user}`)
+            .text(`Sucursal: ${branch}`)
+            .drawLine()
+            .style('NORMAL')
+
+        if (products && products.length > 0) {
+            printer
+                .style('B')
+                .align('lt')
+                .tableCustom([
+                    { text: 'Producto', align: 'LEFT', width: 0.8 },
+                    { text: 'stock', align: 'RIGHT', width: 0.2 }
+                ])
+                .style('NORMAL');
+            products.forEach(p => {
+                printer.tableCustom([
+                    { text: p.name, align: 'LEFT', width: 0.8 },
+                    { text: p.stock.toString(), align: 'RIGHT', width: 0.2 }
+                ]);
+            });
+            printer
+                .size(0, 0)
+                .drawLine();
+        }
+        
+        printer
             .align('rt').style('NORMAL').text(`Impreso: ${getDateTime()}`)
             .text('')
             .cut();

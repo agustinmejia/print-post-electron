@@ -1,7 +1,7 @@
 // main.js
 
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, Tray, Menu } = require('electron');
+const { app, BrowserWindow, Tray, Menu, shell } = require('electron');
 const path = require('node:path');
 
 let mainWindow = null;
@@ -38,6 +38,12 @@ const createWindow = () => {
         webPreferences: {
             preload: path.join(__dirname, 'preload.js')
         }
+    });
+
+    // Abrir enlaces externos en el navegador predeterminado
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+        shell.openExternal(url);
+        return { action: 'deny' };
     });
 
     mainWindow.loadFile(path.join(__dirname, 'pages', 'index.html'));
@@ -128,6 +134,6 @@ app.on('before-quit', () => {
 // code. You can also put them in separate files and require them here.
 
 // Hacer reload cuando se hacen cambios
-require('electron-reload')(__dirname, {
-  electron: require(`${__dirname}/node_modules/electron`)
-});
+// require('electron-reload')(__dirname, {
+//   electron: require(`${__dirname}/node_modules/electron`)
+// });
