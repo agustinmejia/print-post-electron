@@ -85,6 +85,9 @@ app.post('/print', async (req, res) => {
             case 'inventario':
                 await printInventory(data, printerConfig);
                 break;
+            case 'recibo_tienda':
+                await printStoreReceipt(data, printerConfig);
+                break;
             default:
                 await printRecipe(data, printerConfig);
                 await printComanda(data, printerConfig);
@@ -132,8 +135,10 @@ function printWithDevice(device, printCommands) {
                 }
                 try {
                     printCommands(printer);
-                    printer.close();
-                    resolve();
+                    printer.close((closeError) => {
+                        if (closeError) console.warn(`Advertencia al cerrar impresora: ${closeError.message}`);
+                        resolve();
+                    });
                 } catch (printError) {
                     reject(new Error(`Error durante la impresión: ${printError.message}`));
                 }
@@ -303,14 +308,6 @@ async function printCloseBox(data, printerConfig) {
             .align('ct')
             .text('RESUMEN')
             .style('NORMAL')
-            // .align('lt')
-            // .text(`Apertura:   ${parseFloat(opening_amount).toFixed(2)}`)
-            // .text(`Ingresos:   ${parseFloat(income_amount).toFixed(2)}`)
-            // .text(`Gastos:     ${parseFloat(expenses_amount).toFixed(2)}`)
-            // .text(`Cierre:     ${parseFloat(closed_amount).toFixed(2)}`)
-            // .text(`Faltante:   ${parseFloat(missing_amount).toFixed(2)}`)
-            // .text(`Sobrante:   ${parseFloat(surplus_amount).toFixed(2)}`)
-            // .text(`Pagos QR:   ${parseFloat(qr_amount).toFixed(2)}`)
 
             .tableCustom([
                 { text: 'Apertura', align: 'LEFT', width: 0.5 },
@@ -469,6 +466,81 @@ async function printInventory(data, printerConfig) {
         
         printer
             .align('rt').style('NORMAL').text(`Impreso: ${getDateTime()}`)
+            .text('')
+            .cut();
+    });
+}
+
+async function printStoreReceipt(data, printerConfig) {
+    const { company_name, sale_number, customer, details, discount, tax, payment_type, font_size: raw_font_size } = data;
+
+    if (!sale_number || !details) {
+        console.log('Formato de datos incorrecto');
+        return;
+    }
+
+    const fontSize = !isNaN(raw_font_size) ? parseInt(raw_font_size) : 0;
+    const device = getDevice(printerConfig);
+
+    await printWithDevice(device, (printer) => {
+        printer
+            .align('ct').style('B').size(0, 0 + fontSize).text(company_name)
+            .size(0, 0 + fontSize)
+            .align('ct').style('B').text(`Recibo ${sale_number}`)
+            .style('NORMAL')
+            .align('lt');
+
+        if (customer) {
+            printer.tableCustom([
+                { text: 'Cliente:', align: 'LEFT' },
+                { text: customer, align: 'RIGHT' }
+            ]);
+        }
+
+        printer
+            .size(0, 0)
+            .drawLine()
+            .style('B')
+            .tableCustom([
+                { text: 'Cant.', align: 'LEFT',  width: 0.08 },
+                { text: 'Producto',  align: 'LEFT',  width: 0.47 },
+                { text: 'P.Unit',    align: 'RIGHT', width: 0.22 },
+                { text: 'Total',     align: 'RIGHT', width: 0.23 },
+            ])
+            .style('NORMAL')
+            .size(0, 0 + fontSize)
+            .align('lt');
+
+        let subtotal = 0;
+        (details || []).forEach(item => {
+            printer.tableCustom([
+                { text: String(item.quantity),              align: 'LEFT',  width: 0.08 },
+                { text: item.product,                       align: 'LEFT',  width: 0.47 },
+                { text: parseFloat(item.unit_price).toFixed(2), align: 'RIGHT', width: 0.22 },
+                { text: parseFloat(item.total).toFixed(2),      align: 'RIGHT', width: 0.23 },
+            ]);
+            subtotal += parseFloat(item.total);
+        });
+
+        printer.size(0, 0).drawLine().size(0, 0 + fontSize);
+
+        if (discount) {
+            printer.align('rt').style('NORMAL').text(`Descuento: -${parseFloat(discount).toFixed(2)}`);
+        }
+        if (tax) {
+            printer.align('rt').style('NORMAL').text(`IVA: ${parseFloat(tax).toFixed(2)}`);
+        }
+
+        const total = subtotal - (discount || 0) + (tax || 0);
+        printer.align('rt').style('B').text(`TOTAL: ${total.toFixed(2)}`);
+
+        if (payment_type) {
+            printer.align('rt').style('NORMAL').text(`Pago: ${payment_type}`);
+        }
+
+        printer
+            .align('ct').style('NORMAL').text('Gracias por su compra!')
+            .align('rt').style('NORMAL').text(getDateTime())
             .text('')
             .cut();
     });

@@ -30,8 +30,8 @@ if (!gotTheLock) {
 const createWindow = () => {
     // Create the browser window.
     mainWindow = new BrowserWindow({
-        width: 600,
-        height: 400,
+        width: 750,
+        height: 520,
         show: false,
         skipTaskbar: false, // Se mostrará en la barra de tareas cuando sea visible
         icon: path.join(__dirname, 'assets/images', 'icon.png'),

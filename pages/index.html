@@ -22,9 +22,19 @@
                         <button class="btn btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-printer"></i> Impresión de prueba
                         </button>
-                        <ul class="dropdown-menu">
+                        <ul class="dropdown-menu" style="max-height:260px;overflow-y:auto;">
                             <li><a class="dropdown-item" href="#" id="btn-test"><i class="bi bi-chat-text me-2"></i>Mensaje de prueba</a></li>
-                            <li><a class="dropdown-item" href="#" id="btn-print-ticket"><i class="bi bi-receipt me-2"></i>Ticket y comanda</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Restaurante</h6></li>
+                            <li><a class="dropdown-item" href="#" id="btn-print-recibo"><i class="bi bi-receipt me-2"></i>Recibo</a></li>
+                            <li><a class="dropdown-item" href="#" id="btn-print-ticket"><i class="bi bi-ticket-perforated me-2"></i>Ticket simple</a></li>
+                            <li><a class="dropdown-item" href="#" id="btn-print-comanda"><i class="bi bi-journal-text me-2"></i>Comanda</a></li>
+                            <li><a class="dropdown-item" href="#" id="btn-print-ticket-comanda"><i class="bi bi-receipt me-2"></i>Recibo + comanda</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Tienda / Farmacia</h6></li>
+                            <li><a class="dropdown-item" href="#" id="btn-print-tienda"><i class="bi bi-bag me-2"></i>Recibo tienda</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Gestión</h6></li>
                             <li><a class="dropdown-item" href="#" id="btn-print-close"><i class="bi bi-cash-coin me-2"></i>Cierre de caja</a></li>
                             <li><a class="dropdown-item" href="#" id="btn-print-inventory"><i class="bi bi-card-checklist me-2"></i>Inventario</a></li>
                         </ul>
@@ -93,37 +103,82 @@
                     });
             });
 
-            document.getElementById('btn-print-ticket').addEventListener('click', function() {
-                const body = {
-                    "template" : "normal",
+            document.getElementById('btn-print-recibo').addEventListener('click', function() {
+                sendPrintRequest({
+                    "template": "recibo",
                     "company_name": "DesarrolloCreativo",
                     "sale_number": "001",
-                    "payment_type" : "Efectivo",
-                    "sale_type" : "Mesa",
-                    "table_number" : 5,
-                    "discount" : 0,
-                    "observations" : "Sin aceitunas",
-                    "customer" : "Juan Perez",
-                    "details" : [
-                        {
-                            "product" : "Pollo económico",
-                            "quantity" : 1,
-                            "total" : 12
-                        },
-                        {
-                            "product" : "Hamburguesa completa",
-                            "quantity" : 2,
-                            "total" : 24
-                        },
-                        {
-                            "product" : "Coca cola 1 lt.",
-                            "quantity" : 1,
-                            "total" : 10
-                        }
+                    "sale_type": "Mesa",
+                    "table_number": 5,
+                    "customer": "Juan Perez",
+                    "payment_type": "Efectivo",
+                    "discount": 0,
+                    "details": [
+                        { "product": "Pollo económico",      "quantity": 1, "total": 12 },
+                        { "product": "Hamburguesa completa", "quantity": 2, "total": 24 },
+                        { "product": "Coca cola 1 lt.",      "quantity": 1, "total": 10 }
                     ]
-                };
+                }, 'Enviando recibo...');
+            });
 
-                sendPrintRequest(body, 'Enviando ticket...');
+            document.getElementById('btn-print-ticket').addEventListener('click', function() {
+                sendPrintRequest({
+                    "template": "ticket",
+                    "company_name": "DesarrolloCreativo",
+                    "sale_number": "001",
+                    "sale_type": "Mesa",
+                    "table_number": 5
+                }, 'Enviando ticket...');
+            });
+
+            document.getElementById('btn-print-comanda').addEventListener('click', function() {
+                sendPrintRequest({
+                    "template": "comanda",
+                    "sale_number": "001",
+                    "sale_type": "Mesa",
+                    "table_number": 5,
+                    "customer": "Juan Perez",
+                    "observations": "Sin aceitunas",
+                    "details": [
+                        { "product": "Pollo económico",      "quantity": 1, "total": 12 },
+                        { "product": "Hamburguesa completa", "quantity": 2, "total": 24 },
+                        { "product": "Coca cola 1 lt.",      "quantity": 1, "total": 10 }
+                    ]
+                }, 'Enviando comanda...');
+            });
+
+            document.getElementById('btn-print-ticket-comanda').addEventListener('click', function() {
+                sendPrintRequest({
+                    "template": "ticket_comanda",
+                    "company_name": "DesarrolloCreativo",
+                    "sale_number": "001",
+                    "sale_type": "Mesa",
+                    "table_number": 5,
+                    "customer": "Juan Perez",
+                    "observations": "Sin aceitunas",
+                    "details": [
+                        { "product": "Pollo económico",      "quantity": 1, "total": 12 },
+                        { "product": "Hamburguesa completa", "quantity": 2, "total": 24 },
+                        { "product": "Coca cola 1 lt.",      "quantity": 1, "total": 10 }
+                    ]
+                }, 'Enviando ticket y comanda...');
+            });
+
+            document.getElementById('btn-print-tienda').addEventListener('click', function() {
+                sendPrintRequest({
+                    "template": "recibo_tienda",
+                    "company_name": "Farmacia Central",
+                    "sale_number": "001",
+                    "customer": "Juan Perez",
+                    "payment_type": "Efectivo",
+                    "discount": 1.00,
+                    "tax": 1.08,
+                    "details": [
+                        { "product": "Paracetamol 500mg", "quantity": 2, "unit_price": 5.00,  "total": 10.00 },
+                        { "product": "Ibuprofeno 400mg",  "quantity": 1, "unit_price": 3.50,  "total": 3.50  },
+                        { "product": "Alcohol 70%",       "quantity": 1, "unit_price": 12.00, "total": 12.00 }
+                    ]
+                }, 'Enviando recibo tienda...');
             });
 
             document.getElementById('btn-print-close').addEventListener('click', function() {
