@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <title>PrintPost V1.1.2</title>
+    <title>PrintPost V1.1.3</title>
     </head>
     <body class="vh-100 d-flex align-items-center justify-content-center bg-dark">
         <!-- Contenedor con fondo de imagen -->
@@ -13,7 +13,7 @@
             <!-- Div con efecto de vidrio polarizado -->
             <div class="vh-100 w-100 position-absolute top-0 start-0 bg-black bg-opacity-50" style="backdrop-filter: blur(10px);">
                 <div class="text-center text-white pt-3">
-                    <h1 class="display-4 fw-bold">PrintPost v1.1.2</h1>
+                    <h1 class="display-4 fw-bold">PrintPost v1.1.3</h1>
                     <p class="lead">Interface de impresión ESC/POS desde http</p>
                     <!-- <button id="btn-test" class="btn btn-success">
                         Probar
@@ -29,7 +29,8 @@
                             <li><a class="dropdown-item" href="#" id="btn-print-recibo"><i class="bi bi-receipt me-2"></i>Recibo</a></li>
                             <li><a class="dropdown-item" href="#" id="btn-print-ticket"><i class="bi bi-ticket-perforated me-2"></i>Ticket simple</a></li>
                             <li><a class="dropdown-item" href="#" id="btn-print-comanda"><i class="bi bi-journal-text me-2"></i>Comanda</a></li>
-                            <li><a class="dropdown-item" href="#" id="btn-print-ticket-comanda"><i class="bi bi-receipt me-2"></i>Recibo + comanda</a></li>
+                            <li><a class="dropdown-item" href="#" id="btn-print-recibo-comanda"><i class="bi bi-receipt me-2"></i>Recibo + comanda</a></li>
+                            <li><a class="dropdown-item" href="#" id="btn-print-ticket-comanda"><i class="bi bi-ticket-perforated me-2"></i>Ticket + comanda</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><h6 class="dropdown-header">Tienda / Farmacia</h6></li>
                             <li><a class="dropdown-item" href="#" id="btn-print-tienda"><i class="bi bi-bag me-2"></i>Recibo tienda</a></li>
@@ -43,7 +44,7 @@
                 <div id="result" class="mt-3 d-none bg-dark border border-secondary rounded p-4 mx-5 text-white">
                 </div>
                 <div class="position-absolute bottom-0 start-0 p-1 bg-dark w-100 text-end">
-                    <small class="text-light" style="font-size: 11px;"><a class="text-success" href="https://desarrollocreativo.dev" target="_blank">DesarrolloCreativo</a> - 202601171500</small>
+                    <small class="text-light" style="font-size: 11px;"><a class="text-success" href="https://desarrollocreativo.dev" target="_blank">DesarrolloCreativo</a> - 202605151627</small>
                 </div>
             </div>
         </div>
@@ -162,6 +163,25 @@
                         { "product": "Coca cola 1 lt.",      "quantity": 1, "total": 10 }
                     ]
                 }, 'Enviando ticket y comanda...');
+            });
+
+            document.getElementById('btn-print-recibo-comanda').addEventListener('click', function() {
+                sendPrintRequest({
+                    "template": "normal",
+                    "company_name": "DesarrolloCreativo",
+                    "sale_number": "001",
+                    "sale_type": "Mesa",
+                    "table_number": 5,
+                    "customer": "Juan Perez",
+                    "payment_type": "Efectivo",
+                    "discount": 0,
+                    "observations": "Sin aceitunas",
+                    "details": [
+                        { "product": "Pollo económico",      "quantity": 1, "total": 12 },
+                        { "product": "Hamburguesa completa", "quantity": 2, "total": 24 },
+                        { "product": "Coca cola 1 lt.",      "quantity": 1, "total": 10 }
+                    ]
+                }, 'Enviando recibo y comanda...');
             });
 
             document.getElementById('btn-print-tienda').addEventListener('click', function() {
