@@ -1,11 +1,107 @@
 // main.js
 
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, Tray, Menu, shell } = require('electron');
+const { app, BrowserWindow, Tray, Menu, shell, ipcMain } = require('electron');
 const path = require('node:path');
+const fs = require('node:fs');
 
 let mainWindow = null;
 let tray = null;
+
+// --- Configuración persistente ---
+
+const DEFAULT_CONFIG = {
+    connectionType: 'network',
+    usbMode: 'windows',
+    network: { ip: '', port: 9100 },
+    usb: { printerName: '', deviceId: '' },
+    cashDrawer: { enabled: false, pin: 2 },
+};
+
+function getConfigPath() {
+    return path.join(app.getPath('userData'), 'config.json');
+}
+
+function loadConfig() {
+    const configPath = getConfigPath();
+    try {
+        if (fs.existsSync(configPath)) {
+            const raw = fs.readFileSync(configPath, 'utf-8');
+            return Object.assign({}, DEFAULT_CONFIG, JSON.parse(raw));
+        }
+    } catch (err) {
+        console.error('Error leyendo config.json, usando defaults:', err.message);
+    }
+    return Object.assign({}, DEFAULT_CONFIG);
+}
+
+function saveConfig(config) {
+    const configPath = getConfigPath();
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
+}
+
+let appConfig = loadConfig();
+
+// Asegurar que el archivo existe en disco con valores actuales
+try {
+    if (!fs.existsSync(getConfigPath())) {
+        saveConfig(appConfig);
+    }
+} catch (err) {
+    console.error('Error inicializando config.json:', err.message);
+}
+
+// --- Handlers IPC ---
+
+ipcMain.handle('config:get', () => {
+    return appConfig;
+});
+
+ipcMain.handle('config:set', (event, partial) => {
+    appConfig = deepMerge(appConfig, partial);
+    saveConfig(appConfig);
+    return appConfig;
+});
+
+ipcMain.handle('printers:list', async () => {
+    if (!mainWindow) return [];
+    const printers = await mainWindow.webContents.getPrintersAsync();
+    return printers.map(p => ({ name: p.name, isDefault: p.isDefault }));
+});
+
+ipcMain.handle('usb:list', () => {
+    try {
+        const EscposUSB = require('escpos-usb');
+        const devices = EscposUSB.findPrinter();
+        return devices.map(d => {
+            const vid = d.deviceDescriptor.idVendor;
+            const pid = d.deviceDescriptor.idProduct;
+            const vidHex = vid.toString(16).toUpperCase().padStart(4, '0');
+            const pidHex = pid.toString(16).toUpperCase().padStart(4, '0');
+            return {
+                vendorId: vid,
+                productId: pid,
+                deviceId: `${vid}:${pid}`,
+                label: `USB 0x${vidHex}:0x${pidHex}`,
+            };
+        });
+    } catch (err) {
+        console.error('usb:list error:', err.message);
+        return [];
+    }
+});
+
+function deepMerge(target, source) {
+    const result = Object.assign({}, target);
+    for (const key of Object.keys(source)) {
+        if (source[key] !== null && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+            result[key] = deepMerge(target[key] || {}, source[key]);
+        } else {
+            result[key] = source[key];
+        }
+    }
+    return result;
+}
 
 // Previene que se abran múltiples instancias de la aplicación.
 const gotTheLock = app.requestSingleInstanceLock();
@@ -94,6 +190,8 @@ const createWindow = () => {
 function startServer() {
     const serverPath = path.join(__dirname, 'server.js');
     try {
+        // Exponer getter de config para que server.js acceda sin IPC
+        global.getAppConfig = () => appConfig;
         require(serverPath);
         console.log('Servidor Express iniciado correctamente');
     } catch (error) {

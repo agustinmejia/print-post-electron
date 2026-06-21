@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
+    "electron-pos-printer": "^1.4.0",
     "electron-squirrel-startup": "^1.0.1",
     "escpos": "^3.0.0-alpha.6",
     "escpos-network": "^3.0.0-alpha.5",

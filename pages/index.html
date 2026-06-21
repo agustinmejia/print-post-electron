@@ -5,51 +5,200 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <title>PrintPost V1.1.3</title>
+    <title>PrintPost V1.2.0</title>
+    <style>
+        .help-text { font-size: 0.8rem; color: #adb5bd; }
+        .mode-badge { font-size: 0.7rem; }
+    </style>
     </head>
     <body class="vh-100 d-flex align-items-center justify-content-center bg-dark">
-        <!-- Contenedor con fondo de imagen -->
+        <!-- Fondo con efecto glassmorphism -->
         <div class="position-relative w-100 h-100" style="background-image: url('../assets/images/background.jpg');background-position: center;background-repeat: no-repeat;background-size: cover;">
-            <!-- Div con efecto de vidrio polarizado -->
             <div class="vh-100 w-100 position-absolute top-0 start-0 bg-black bg-opacity-50" style="backdrop-filter: blur(10px);">
+
                 <div class="text-center text-white pt-3">
-                    <h1 class="display-4 fw-bold">PrintPost v1.1.3</h1>
+                    <h1 class="display-4 fw-bold">PrintPost v1.2.0</h1>
                     <p class="lead">Interface de impresión ESC/POS desde http</p>
-                    <!-- <button id="btn-test" class="btn btn-success">
-                        Probar
-                    </button> -->
-                    <div class="dropdown">
-                        <button class="btn btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-printer"></i> Impresión de prueba
+
+                    <div class="d-flex justify-content-center gap-2">
+                        <!-- Dropdown de pruebas -->
+                        <div class="dropdown">
+                            <button class="btn btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-printer"></i> Impresión de prueba
+                            </button>
+                            <ul class="dropdown-menu" style="max-height:260px;overflow-y:auto;">
+                                <li><a class="dropdown-item" href="#" id="btn-test"><i class="bi bi-chat-text me-2"></i>Mensaje de prueba</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><h6 class="dropdown-header">Restaurante</h6></li>
+                                <li><a class="dropdown-item" href="#" id="btn-print-recibo"><i class="bi bi-receipt me-2"></i>Recibo</a></li>
+                                <li><a class="dropdown-item" href="#" id="btn-print-ticket"><i class="bi bi-ticket-perforated me-2"></i>Ticket simple</a></li>
+                                <li><a class="dropdown-item" href="#" id="btn-print-comanda"><i class="bi bi-journal-text me-2"></i>Comanda</a></li>
+                                <li><a class="dropdown-item" href="#" id="btn-print-recibo-comanda"><i class="bi bi-receipt me-2"></i>Recibo + comanda</a></li>
+                                <li><a class="dropdown-item" href="#" id="btn-print-ticket-comanda"><i class="bi bi-ticket-perforated me-2"></i>Ticket + comanda</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><h6 class="dropdown-header">Tienda / Farmacia</h6></li>
+                                <li><a class="dropdown-item" href="#" id="btn-print-tienda"><i class="bi bi-bag me-2"></i>Recibo tienda</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><h6 class="dropdown-header">Gestión</h6></li>
+                                <li><a class="dropdown-item" href="#" id="btn-print-close"><i class="bi bi-cash-coin me-2"></i>Cierre de caja</a></li>
+                                <li><a class="dropdown-item" href="#" id="btn-print-inventory"><i class="bi bi-card-checklist me-2"></i>Inventario</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- Botón de configuración -->
+                        <button class="btn btn-outline-light" id="btn-settings" title="Configuración de impresora">
+                            <i class="bi bi-gear"></i>
                         </button>
-                        <ul class="dropdown-menu" style="max-height:260px;overflow-y:auto;">
-                            <li><a class="dropdown-item" href="#" id="btn-test"><i class="bi bi-chat-text me-2"></i>Mensaje de prueba</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><h6 class="dropdown-header">Restaurante</h6></li>
-                            <li><a class="dropdown-item" href="#" id="btn-print-recibo"><i class="bi bi-receipt me-2"></i>Recibo</a></li>
-                            <li><a class="dropdown-item" href="#" id="btn-print-ticket"><i class="bi bi-ticket-perforated me-2"></i>Ticket simple</a></li>
-                            <li><a class="dropdown-item" href="#" id="btn-print-comanda"><i class="bi bi-journal-text me-2"></i>Comanda</a></li>
-                            <li><a class="dropdown-item" href="#" id="btn-print-recibo-comanda"><i class="bi bi-receipt me-2"></i>Recibo + comanda</a></li>
-                            <li><a class="dropdown-item" href="#" id="btn-print-ticket-comanda"><i class="bi bi-ticket-perforated me-2"></i>Ticket + comanda</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><h6 class="dropdown-header">Tienda / Farmacia</h6></li>
-                            <li><a class="dropdown-item" href="#" id="btn-print-tienda"><i class="bi bi-bag me-2"></i>Recibo tienda</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><h6 class="dropdown-header">Gestión</h6></li>
-                            <li><a class="dropdown-item" href="#" id="btn-print-close"><i class="bi bi-cash-coin me-2"></i>Cierre de caja</a></li>
-                            <li><a class="dropdown-item" href="#" id="btn-print-inventory"><i class="bi bi-card-checklist me-2"></i>Inventario</a></li>
-                        </ul>
+                    </div>
+
+                    <!-- Badge de modo activo -->
+                    <div class="mt-2" id="connection-badge-container">
+                        <span class="badge bg-secondary mode-badge" id="connection-badge">
+                            <i class="bi bi-circle-fill me-1" style="font-size:0.5rem;"></i> Cargando config...
+                        </span>
                     </div>
                 </div>
-                <div id="result" class="mt-3 d-none bg-dark border border-secondary rounded p-4 mx-5 text-white">
-                </div>
+
+                <div id="result" class="mt-3 d-none bg-dark border border-secondary rounded p-4 mx-5 text-white"></div>
+
                 <div class="position-absolute bottom-0 start-0 p-1 bg-dark w-100 text-end">
-                    <small class="text-light" style="font-size: 11px;"><a class="text-success" href="https://desarrollocreativo.dev" target="_blank">DesarrolloCreativo</a> - 202605151627</small>
+                    <small class="text-light" style="font-size: 11px;"><a class="text-success" href="https://desarrollocreativo.dev" target="_blank">DesarrolloCreativo</a> - 202606200000</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== MODAL DE CONFIGURACIÓN ===== -->
+        <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content bg-dark text-white border border-secondary">
+                    <div class="modal-header border-secondary">
+                        <h5 class="modal-title" id="settingsModalLabel"><i class="bi bi-gear me-2"></i>Configuración de impresora</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+
+                        <!-- Tipo de conexión -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tipo de conexión</label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="connectionType" id="ct-usb" value="usb">
+                                    <label class="form-check-label" for="ct-usb"><i class="bi bi-usb-symbol me-1"></i>USB</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="connectionType" id="ct-network" value="network">
+                                    <label class="form-check-label" for="ct-network"><i class="bi bi-wifi me-1"></i>Red (TCP/IP)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sección RED -->
+                        <div id="section-network" class="d-none">
+                            <div class="mb-2">
+                                <label for="net-ip" class="form-label">IP</label>
+                                <input type="text" class="form-control bg-secondary text-white border-0" id="net-ip" placeholder="192.168.1.100">
+                            </div>
+                            <div class="mb-2">
+                                <label for="net-port" class="form-label">Puerto</label>
+                                <input type="number" class="form-control bg-secondary text-white border-0" id="net-port" placeholder="9100">
+                            </div>
+                            <p class="help-text"><i class="bi bi-info-circle me-1"></i>Permite comandos ESC/POS sin modificar drivers. Recomendado para impresoras Ethernet o WiFi.</p>
+                        </div>
+
+                        <!-- Sección USB -->
+                        <div id="section-usb" class="d-none">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Modo USB</label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="usbMode" id="um-windows" value="windows">
+                                        <label class="form-check-label" for="um-windows">
+                                            <i class="bi bi-windows me-1"></i>Driver Windows
+                                            <span class="badge bg-success ms-1 mode-badge">Recomendado</span>
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="usbMode" id="um-libusb" value="libusb">
+                                        <label class="form-check-label" for="um-libusb"><i class="bi bi-cpu me-1"></i>LibUSB</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sub-sección: Windows driver -->
+                            <div id="section-usb-windows" class="d-none">
+                                <div class="mb-2">
+                                    <label for="win-printer" class="form-label">Impresora</label>
+                                    <div class="d-flex gap-2">
+                                        <select class="form-select bg-secondary text-white border-0" id="win-printer">
+                                            <option value="">— Seleccionar impresora —</option>
+                                        </select>
+                                        <button class="btn btn-outline-light btn-sm" id="btn-refresh-printers" title="Actualizar lista">
+                                            <i class="bi bi-arrow-clockwise"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="help-text"><i class="bi bi-check-circle text-success me-1"></i>Compatible con cualquier impresora instalada en Windows. No requiere Zadig.</p>
+                            </div>
+
+                            <!-- Sub-sección: LibUSB -->
+                            <div id="section-usb-libusb" class="d-none">
+                                <div class="mb-2">
+                                    <label for="usb-device" class="form-label">Dispositivo USB</label>
+                                    <div class="d-flex gap-2">
+                                        <select class="form-select bg-secondary text-white border-0" id="usb-device">
+                                            <option value="">— Dispositivo automático —</option>
+                                        </select>
+                                        <button class="btn btn-outline-light btn-sm" id="btn-refresh-usb" title="Actualizar lista">
+                                            <i class="bi bi-arrow-clockwise"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="help-text"><i class="bi bi-exclamation-triangle text-warning me-1"></i>Requiere instalar WinUSB vía Zadig. La impresora puede dejar de funcionar con otros programas. Permite acceso directo a funciones ESC/POS.</p>
+                            </div>
+                        </div>
+
+                        <hr class="border-secondary">
+
+                        <!-- Cajón de dinero -->
+                        <div class="mb-3">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="drawer-enabled">
+                                <label class="form-check-label fw-bold" for="drawer-enabled">
+                                    <i class="bi bi-cash-coin me-1"></i>Abrir cajón al imprimir
+                                </label>
+                            </div>
+                            <div id="drawer-pin-section" class="d-none ps-3">
+                                <label class="form-label">Pin del cajón</label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="drawerPin" id="pin-2" value="2">
+                                        <label class="form-check-label" for="pin-2">Pin 2</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="drawerPin" id="pin-5" value="5">
+                                        <label class="form-check-label" for="pin-5">Pin 5</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mensaje de estado del guardado -->
+                        <div id="save-status" class="d-none alert py-2" role="alert"></div>
+
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-success" id="btn-save-settings">
+                            <i class="bi bi-floppy me-1"></i>Guardar
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
         <script>
+            // ===== UTILIDADES DE IMPRESIÓN =====
+
             function sendPrintRequest(body, loadingMessage) {
                 const resultDiv = document.getElementById('result');
                 resultDiv.classList.remove('d-none');
@@ -70,37 +219,252 @@
                 });
             }
 
+            // ===== BADGE DE MODO ACTIVO =====
+
+            function updateConnectionBadge(config) {
+                const badge = document.getElementById('connection-badge');
+                if (!config) { badge.textContent = 'Sin config'; return; }
+                if (config.connectionType === 'network') {
+                    badge.className = 'badge bg-info mode-badge';
+                    badge.innerHTML = '<i class="bi bi-wifi me-1"></i>Red: ' + (config.network.ip || 'sin IP') + ':' + (config.network.port || 9100);
+                } else if (config.usbMode === 'windows') {
+                    badge.className = 'badge bg-primary mode-badge';
+                    badge.innerHTML = '<i class="bi bi-windows me-1"></i>USB Windows: ' + (config.usb.printerName || 'sin seleccionar');
+                } else {
+                    badge.className = 'badge bg-warning text-dark mode-badge';
+                    badge.innerHTML = '<i class="bi bi-cpu me-1"></i>USB LibUSB: ' + (config.usb.deviceId || 'automático');
+                }
+            }
+
+            // Cargar badge al iniciar
+            if (window.api) {
+                window.api.getConfig().then(updateConnectionBadge).catch(() => {});
+            }
+
+            // ===== LÓGICA DE CONFIGURACIÓN =====
+
+            function showSection(id) { document.getElementById(id).classList.remove('d-none'); }
+            function hideSection(id) { document.getElementById(id).classList.add('d-none'); }
+
+            function handleConnectionTypeChange() {
+                const ct = document.querySelector('input[name="connectionType"]:checked');
+                if (!ct) return;
+                if (ct.value === 'network') {
+                    showSection('section-network');
+                    hideSection('section-usb');
+                } else {
+                    hideSection('section-network');
+                    showSection('section-usb');
+                    handleUsbModeChange();
+                }
+            }
+
+            function handleUsbModeChange() {
+                const um = document.querySelector('input[name="usbMode"]:checked');
+                if (!um) return;
+                if (um.value === 'windows') {
+                    showSection('section-usb-windows');
+                    hideSection('section-usb-libusb');
+                } else {
+                    hideSection('section-usb-windows');
+                    showSection('section-usb-libusb');
+                }
+            }
+
+            function handleDrawerToggle() {
+                const enabled = document.getElementById('drawer-enabled').checked;
+                if (enabled) showSection('drawer-pin-section');
+                else hideSection('drawer-pin-section');
+            }
+
+            async function refreshPrinterList(selectCurrentValue) {
+                const select = document.getElementById('win-printer');
+                select.innerHTML = '<option value="">Cargando...</option>';
+                try {
+                    const printers = await window.api.getPrinters();
+                    select.innerHTML = '<option value="">— Seleccionar impresora —</option>';
+                    printers.forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p.name;
+                        opt.textContent = p.name + (p.isDefault ? ' (predeterminada)' : '');
+                        if (p.name === selectCurrentValue) opt.selected = true;
+                        select.appendChild(opt);
+                    });
+                } catch (e) {
+                    select.innerHTML = '<option value="">Error al cargar impresoras</option>';
+                }
+            }
+
+            async function refreshUsbDeviceList(selectCurrentValue) {
+                const select = document.getElementById('usb-device');
+                select.innerHTML = '<option value="">Buscando dispositivos...</option>';
+                try {
+                    const devices = await window.api.getUsbDevices();
+                    select.innerHTML = '<option value="">— Dispositivo automático —</option>';
+                    if (devices.length === 0) {
+                        const opt = document.createElement('option');
+                        opt.value = '';
+                        opt.textContent = 'No se encontraron dispositivos USB (¿Zadig instalado?)';
+                        opt.disabled = true;
+                        select.appendChild(opt);
+                    } else {
+                        devices.forEach(d => {
+                            const opt = document.createElement('option');
+                            opt.value = d.deviceId;
+                            opt.textContent = d.label;
+                            if (d.deviceId === selectCurrentValue) opt.selected = true;
+                            select.appendChild(opt);
+                        });
+                    }
+                } catch (e) {
+                    select.innerHTML = '<option value="">Error al listar dispositivos USB</option>';
+                }
+            }
+
+            async function openSettings() {
+                if (!window.api) {
+                    alert('Configuración no disponible fuera de la aplicación Electron.');
+                    return;
+                }
+
+                // Limpiar estado
+                document.getElementById('save-status').classList.add('d-none');
+
+                const config = await window.api.getConfig();
+
+                // Tipo de conexión
+                const ctRadio = document.querySelector(`input[name="connectionType"][value="${config.connectionType}"]`);
+                if (ctRadio) ctRadio.checked = true;
+
+                // Campos de red
+                document.getElementById('net-ip').value = config.network.ip || '';
+                document.getElementById('net-port').value = config.network.port || 9100;
+
+                // Modo USB
+                const umRadio = document.querySelector(`input[name="usbMode"][value="${config.usbMode}"]`);
+                if (umRadio) umRadio.checked = true;
+
+                // Cajón
+                const drawerEnabled = config.cashDrawer.enabled;
+                document.getElementById('drawer-enabled').checked = drawerEnabled;
+                const pinRadio = document.querySelector(`input[name="drawerPin"][value="${config.cashDrawer.pin || 2}"]`);
+                if (pinRadio) pinRadio.checked = true;
+                else document.getElementById('pin-2').checked = true;
+                handleDrawerToggle();
+
+                // Mostrar secciones correctas
+                handleConnectionTypeChange();
+
+                // Poblar listas
+                await refreshPrinterList(config.usb.printerName || '');
+                await refreshUsbDeviceList(config.usb.deviceId || '');
+
+                const modal = new bootstrap.Modal(document.getElementById('settingsModal'));
+                modal.show();
+            }
+
+            async function saveSettings() {
+                const statusEl = document.getElementById('save-status');
+                statusEl.classList.add('d-none');
+
+                const ctRadio = document.querySelector('input[name="connectionType"]:checked');
+                const umRadio = document.querySelector('input[name="usbMode"]:checked');
+                const pinRadio = document.querySelector('input[name="drawerPin"]:checked');
+
+                if (!ctRadio) {
+                    showStatus('error', 'Selecciona un tipo de conexión.');
+                    return;
+                }
+
+                const connectionType = ctRadio.value;
+                const partial = {
+                    connectionType,
+                    network: {
+                        ip: document.getElementById('net-ip').value.trim(),
+                        port: parseInt(document.getElementById('net-port').value) || 9100,
+                    },
+                    usbMode: umRadio ? umRadio.value : 'windows',
+                    usb: {
+                        printerName: document.getElementById('win-printer').value,
+                        deviceId: document.getElementById('usb-device').value,
+                    },
+                    cashDrawer: {
+                        enabled: document.getElementById('drawer-enabled').checked,
+                        pin: pinRadio ? parseInt(pinRadio.value) : 2,
+                    },
+                };
+
+                // Validaciones
+                if (connectionType === 'network' && !partial.network.ip) {
+                    showStatus('error', 'Ingresa la IP de la impresora.');
+                    return;
+                }
+                if (connectionType === 'usb' && partial.usbMode === 'windows' && !partial.usb.printerName) {
+                    showStatus('error', 'Selecciona una impresora Windows.');
+                    return;
+                }
+
+                try {
+                    const saved = await window.api.setConfig(partial);
+                    showStatus('success', 'Configuración guardada.');
+                    updateConnectionBadge(saved);
+                    setTimeout(() => {
+                        bootstrap.Modal.getInstance(document.getElementById('settingsModal')).hide();
+                    }, 800);
+                } catch (e) {
+                    showStatus('error', 'Error al guardar: ' + e.message);
+                }
+            }
+
+            function showStatus(type, message) {
+                const el = document.getElementById('save-status');
+                el.className = 'alert py-2 ' + (type === 'success' ? 'alert-success' : 'alert-danger');
+                el.textContent = message;
+                el.classList.remove('d-none');
+            }
+
+            // ===== EVENTOS DE CONFIGURACIÓN =====
+
+            document.querySelectorAll('input[name="connectionType"]').forEach(r =>
+                r.addEventListener('change', handleConnectionTypeChange)
+            );
+            document.querySelectorAll('input[name="usbMode"]').forEach(r =>
+                r.addEventListener('change', handleUsbModeChange)
+            );
+            document.getElementById('drawer-enabled').addEventListener('change', handleDrawerToggle);
+            document.getElementById('btn-settings').addEventListener('click', openSettings);
+            document.getElementById('btn-save-settings').addEventListener('click', saveSettings);
+            document.getElementById('btn-refresh-printers').addEventListener('click', () => {
+                const current = document.getElementById('win-printer').value;
+                refreshPrinterList(current);
+            });
+            document.getElementById('btn-refresh-usb').addEventListener('click', () => {
+                const current = document.getElementById('usb-device').value;
+                refreshUsbDeviceList(current);
+            });
+
+            // ===== EVENTOS DE IMPRESIÓN DE PRUEBA =====
+
             document.getElementById('btn-test').addEventListener('click', function() {
-                document.getElementById('result').style.display = 'block';
-                document.getElementById('result').innerHTML = 'Iniciando...';
+                const resultDiv = document.getElementById('result');
+                resultDiv.classList.remove('d-none');
+                resultDiv.innerHTML = 'Iniciando...';
 
                 fetch('http://127.0.0.1:3010/test')
-                    .then(response => {
-                        if (!response.ok) {
-                            console.log('error')
-                        }
-                        return response.json();
-                    })
+                    .then(response => response.json())
                     .then(data => {
-                        document.getElementById('result').classList.remove('d-none');
                         let message = '';
-                        if(data.success){
-                            message += '<li>✔️ Servidor http (<a href="http://localhost:3010" target="_blank">Ver</a>) </li>';
-                            if(data.details.print){
-                                message += '<li>✔️ Impresora</li>';
-                            }else{
-                                message += '<li>❌ Impresora</li>';
-                            }
-
+                        if (data.success) {
+                            message += '<li>✔️ Servidor http (<a href="http://localhost:3010" target="_blank">Ver</a>)</li>';
+                            message += data.details.print ? '<li>✔️ Impresora</li>' : '<li>❌ Impresora</li>';
                             message = `<ul>${message}</ul>`;
-                        }else{
-                            message = '❌ '+data.message;
+                        } else {
+                            message = '❌ ' + data.message;
                         }
-                        document.getElementById('result').innerHTML = message;
+                        resultDiv.innerHTML = message;
                     })
                     .catch(error => {
-                        document.getElementById('result').innerHTML = '❌ Error al obtener los datos: ' + error.message;
-                        console.log(error)
+                        resultDiv.innerHTML = '❌ Error: ' + error.message;
                     });
             });
 
@@ -202,7 +566,7 @@
             });
 
             document.getElementById('btn-print-close').addEventListener('click', function() {
-                const body = {
+                sendPrintRequest({
                     "template": "cierre_caja",
                     "user": "Juan Perez",
                     "date": "01-01-2026",
@@ -214,52 +578,26 @@
                     "surplus_amount": 0.00,
                     "qr_amount": 150.00,
                     "products": [
-                        {
-                            "name": "Coca cola 1lt",
-                            "opening": 10,
-                            "closed": 2
-                        },
-                        {
-                            "name": "Agua mineral",
-                            "opening": 6,
-                            "closed": 0
-                        },
-                        {
-                            "name": "Trini",
-                            "opening": 5,
-                            "closed": 1
-                        }
+                        { "name": "Coca cola 1lt", "opening": 10, "closed": 2 },
+                        { "name": "Agua mineral",  "opening": 6,  "closed": 0 },
+                        { "name": "Trini",          "opening": 5,  "closed": 1 }
                     ]
-                };
-
-                sendPrintRequest(body, 'Enviando cierre de caja...');
+                }, 'Enviando cierre de caja...');
             });
 
             document.getElementById('btn-print-inventory').addEventListener('click', function() {
-                const body = {
+                sendPrintRequest({
                     "template": "inventario",
                     "user": "Juan Perez",
                     "branch": "Casa matriz",
                     "products": [
-                        {
-                            "name": "Coca cola 1lt",
-                            "stock": 10
-                        },
-                        {
-                            "name": "Agua mineral",
-                            "stock": 6
-                        },
-                        {
-                            "name": "Trini",
-                            "stock": 5
-                        }
+                        { "name": "Coca cola 1lt", "stock": 10 },
+                        { "name": "Agua mineral",  "stock": 6  },
+                        { "name": "Trini",          "stock": 5  }
                     ]
-                };
-
-                sendPrintRequest(body, 'Enviando inventario...');
+                }, 'Enviando inventario...');
             });
-
         </script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-      </body>
+    </body>
 </html>

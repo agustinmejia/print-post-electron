@@ -1,8 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const escpos = require('escpos');
-escpos.USB = require('escpos-usb');
-escpos.Network = require('escpos-network');
+const { getPrinter } = require('./printer-adapter');
 
 const app = express();
 const port = 3010;
@@ -29,10 +27,10 @@ app.get('/', (req, res) => {
 app.get('/test', async (req, res) => {
     try {
         console.log('Iniciando prueba de conexión y de impresión...');
-        const device = getDevice(req.query);
+        const adapter = getPrinter(getRequestConfig(req.query));
         let printSuccess = false;
-        
-        await printWithDevice(device, (printer) => {
+
+        await adapter.print((printer) => {
             printer
                 .size(1, 1)
                 .align('ct').style('NORMAL')
@@ -104,55 +102,26 @@ app.post('/print', async (req, res) => {
 
 // --- Funciones de Utilidad ---
 
-/**
- * Obtiene el dispositivo de impresión (USB o Red) según la configuración.
- * @param {object} config - Objeto con `ip` y `port`.
- * @returns {escpos.USB|escpos.Network}
- */
-function getDevice(config) {
-    const { ip, port } = config;
-    if (ip) {
-        console.log(`Conectando a impresora de red en ${ip}:${port || 9100}`);
-        return new escpos.Network(ip, port || 9100);
+// Compatibilidad hacia atrás: si ?ip=... llega en query params, sobrescribe config
+// de disco solo para esa petición (no persiste).
+function getRequestConfig(queryParams) {
+    const base = typeof global.getAppConfig === 'function' ? global.getAppConfig() : {};
+    if (queryParams && queryParams.ip) {
+        return Object.assign({}, base, {
+            connectionType: 'network',
+            network: {
+                ip: queryParams.ip,
+                port: parseInt(queryParams.port) || 9100,
+            },
+        });
     }
-    console.log('Conectando a impresora USB.');
-    return new escpos.USB();
-}
-
-/**
- * Envuelve la lógica de impresión en una Promesa para un manejo asíncrono.
- * @param {escpos.USB|escpos.Network} device - El dispositivo de impresión.
- * @param {function(escpos.Printer): void} printCommands - Función que ejecuta los comandos de impresión.
- * @returns {Promise<void>}
- */
-function printWithDevice(device, printCommands) {
-    return new Promise((resolve, reject) => {
-        try {
-            const printer = new escpos.Printer(device, { encoding: "CP850" });
-            device.open((error) => {
-                if (error) {
-                    return reject(new Error(`Error al abrir la impresora: ${error.message}`));
-                }
-                try {
-                    printCommands(printer);
-                    printer.close((closeError) => {
-                        if (closeError) console.warn(`Advertencia al cerrar impresora: ${closeError.message}`);
-                        resolve();
-                    });
-                } catch (printError) {
-                    reject(new Error(`Error durante la impresión: ${printError.message}`));
-                }
-            });
-        } catch (deviceError) {
-            reject(new Error(`Error al inicializar el dispositivo: ${deviceError.message}`));
-        }
-    });
+    return base;
 }
 
 // --- Lógica de Plantillas de Impresión ---
 
 async function printRecipe(data, printerConfig) {
-    const { company_name, sale_number, payment_type, sale_type, table_number, discount, customer, details, font_size: raw_font_size } = data;
+    const { company_name, sale_number, payment_type, sale_type, table_number, discount, customer, details, font_size: raw_font_size, employee } = data;
 
     // Validar que la petición contenga el formato de datos correcto
     if(!sale_number || !details){
@@ -161,9 +130,9 @@ async function printRecipe(data, printerConfig) {
     }
 
     const fontSize = !isNaN(raw_font_size) ? parseInt(raw_font_size) : 0;
-    const device = getDevice(printerConfig);
+    const adapter = getPrinter(getRequestConfig(printerConfig));
 
-    await printWithDevice(device, (printer) => {
+    await adapter.print((printer) => {
         printer
             .align('ct').style('B').size(0, 0 + fontSize).text(company_name)
             .size(0, 0 + fontSize)
@@ -202,8 +171,18 @@ async function printRecipe(data, printerConfig) {
         }
 
         printer
-            .align('ct').style('NORMAL').text('Gracias por su preferencia!')
-            .align('rt').style('NORMAL').text(getDateTime())
+            .align('ct').style('NORMAL').text('Gracias por su preferencia!');
+
+        if (employee) {
+            printer.tableCustom([
+                { text: `Atendido por: ${employee}`, align: 'LEFT', width: 0.6 },
+                { text: getDateTime(), align: 'RIGHT', width: 0.4 }
+            ]);
+        } else {
+            printer.align('rt').style('NORMAL').text(getDateTime());
+        }
+
+        printer
             .text('')
             .cut();
     });
@@ -218,9 +197,9 @@ async function printTicket(data, printerConfig) {
         return;
     }
 
-    const device = getDevice(printerConfig);
+    const adapter = getPrinter(getRequestConfig(printerConfig));
 
-    await printWithDevice(device, (printer) => {
+    await adapter.print((printer) => {
         printer
             .size(1, 1)
             .align('ct').style('B').text(company_name)
@@ -236,7 +215,7 @@ async function printTicket(data, printerConfig) {
 }
 
 async function printComanda(data, printerConfig) {
-    const { sale_number, sale_type, table_number, customer, details, observations, font_size: raw_font_size } = data;
+    const { sale_number, sale_type, table_number, customer, details, observations, font_size: raw_font_size, employee } = data;
 
     // Validar que la petición contenga el formato de datos correcto
     if(!sale_number || !details){
@@ -245,9 +224,9 @@ async function printComanda(data, printerConfig) {
     }
 
     const fontSize = !isNaN(raw_font_size) ? parseInt(raw_font_size) : 0;
-    const device = getDevice(printerConfig);
+    const adapter = getPrinter(getRequestConfig(printerConfig));
 
-    await printWithDevice(device, (printer) => {
+    await adapter.print((printer) => {
         printer
             .size(0, 0 + fontSize)
             .align('ct').style('B')
@@ -277,10 +256,18 @@ async function printComanda(data, printerConfig) {
             printer.align('lt').style('NORMAL').text(`Obs. ${observations}`);
         }
 
+        printer.size(0, 0).text('');
+
+        if (employee) {
+            printer.tableCustom([
+                { text: `Atendido por: ${employee}`, align: 'LEFT', width: 0.6 },
+                { text: getDateTime(), align: 'RIGHT', width: 0.4 }
+            ]);
+        } else {
+            printer.align('rt').style('NORMAL').text(getDateTime());
+        }
+
         printer
-            .size(0, 0)
-            .text('')
-            .align('rt').style('NORMAL').text(getDateTime())
             .text('')
             .cut();
     });
@@ -295,9 +282,9 @@ async function printCloseBox(data, printerConfig) {
         return;
     }
 
-    const device = getDevice(printerConfig);
+    const adapter = getPrinter(getRequestConfig(printerConfig));
 
-    await printWithDevice(device, (printer) => {
+    await adapter.print((printer) => {
         printer
             .align('ct').style('B').size(1, 1).text('CIERRE DE CAJA')
             .size(0, 0).style('NORMAL')
@@ -433,9 +420,9 @@ async function printInventory(data, printerConfig) {
         return;
     }
 
-    const device = getDevice(printerConfig);
+    const adapter = getPrinter(getRequestConfig(printerConfig));
 
-    await printWithDevice(device, (printer) => {
+    await adapter.print((printer) => {
         printer
             .align('ct').style('B').size(1, 1).text('INVENTARIO')
             .size(0, 0).style('NORMAL')
@@ -472,7 +459,7 @@ async function printInventory(data, printerConfig) {
 }
 
 async function printStoreReceipt(data, printerConfig) {
-    const { company_name, sale_number, customer, details, discount, tax, payment_type, font_size: raw_font_size } = data;
+    const { company_name, sale_number, customer, details, discount, tax, payment_type, font_size: raw_font_size, employee } = data;
 
     if (!sale_number || !details) {
         console.log('Formato de datos incorrecto');
@@ -480,9 +467,9 @@ async function printStoreReceipt(data, printerConfig) {
     }
 
     const fontSize = !isNaN(raw_font_size) ? parseInt(raw_font_size) : 0;
-    const device = getDevice(printerConfig);
+    const adapter = getPrinter(getRequestConfig(printerConfig));
 
-    await printWithDevice(device, (printer) => {
+    await adapter.print((printer) => {
         printer
             .align('ct').style('B').size(0, 0 + fontSize).text(company_name)
             .size(0, 0 + fontSize)
@@ -539,8 +526,18 @@ async function printStoreReceipt(data, printerConfig) {
         }
 
         printer
-            .align('ct').style('NORMAL').text('Gracias por su compra!')
-            .align('rt').style('NORMAL').text(getDateTime())
+            .align('ct').style('NORMAL').text('Gracias por su compra!');
+
+        if (employee) {
+            printer.tableCustom([
+                { text: `Atendido por: ${employee}`, align: 'LEFT', width: 0.6 },
+                { text: getDateTime(), align: 'RIGHT', width: 0.4 }
+            ]);
+        } else {
+            printer.align('rt').style('NORMAL').text(getDateTime());
+        }
+
+        printer
             .text('')
             .cut();
     });

@@ -4,23 +4,16 @@ const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 module.exports = {
   packagerConfig: {
     asar: true,
+    // Excluir artefactos de desarrollo del build final
+    ignore: [
+      /^\/\.git/,
+      /^\/node_modules\/.cache/,
+      /^\/dist\//,
+      /^\/ROADMAP\.md$/,
+      /^\/CLAUDE\.md$/,
+      /^\/forge\.config\.js$/,
+    ],
   },
-  build: {
-    "extraResources": [
-      {
-        "from": "pages",
-        "to": "pages"
-      },
-      {
-        "from": "server.js",
-        "to": "server.js"
-      }
-    ]
-  },
-  files: [
-    "main.js",
-    "node_modules/**/*"
-  ],
   rebuildConfig: {},
   makers: [
     {
@@ -42,11 +35,11 @@ module.exports = {
   ],
   plugins: [
     {
+      // Desempaqueta automáticamente módulos nativos (.node) del asar
+      // Necesario para escpos-usb (depende de 'usb' nativo)
       name: '@electron-forge/plugin-auto-unpack-natives',
       config: {},
     },
-    // Fuses are used to enable/disable various Electron functionality
-    // at package time, before code signing the application
     new FusesPlugin({
       version: FuseVersion.V1,
       [FuseV1Options.RunAsNode]: false,
